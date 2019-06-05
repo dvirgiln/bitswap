@@ -28,7 +28,9 @@ object StepOperations {
 }
 
 case class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]) {
+
   import StepOperations._
+
   /*
    * This function is the one that calculate all the possible permutations/operations than can be applied from the current
    * definition snapshot. It has to go bit by bit checking the possible operations to apply
@@ -62,28 +64,28 @@ case class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]) {
    * This function calculates all the possible steps that can be added from the existing Definition Step.
    * Then it append them to the existing definition snapshot and generate a new Definition Snapshot, with the new bits
    */
-  def concatenateStep(rightShifts: Map[Int, Int], expectedBits: Map[Int, Bit], rounds: Int): List[DefinitionSnapshot] =
-    {
-      val newStages = calculateSnapshotPermutation(rightShifts)
-      val filteredStages = newStages.filter{ case (_, bits) =>
-        bits.forall{ case b =>
-          val expectedIndex = expectedBits(b.value).index
-          val expectedRightShifts = expectedBits(b.value).rightShifts
-          if(b.index >= expectedIndex)
-            true
-          else{
-            //This line is key. It allows to filter bits that would never reach the expected bit.
-            // We take the currentIndex and we add up the maximum number of jumps to the right.
-            //In our case the maximum shifts it is the minimum value between the remaining rounds and the jumps that the bit is allowed to do (expectedRightShifts - b.rightShifts)
-            val maximumRightIndex = b.index + Math.min(expectedRightShifts - b.rightShifts,rounds)
-            maximumRightIndex >= expectedIndex
-          }
+  def concatenateStep(rightShifts: Map[Int, Int], expectedBits: Map[Int, Bit], rounds: Int): List[DefinitionSnapshot] = {
+    val newStages = calculateSnapshotPermutation(rightShifts)
+    val filteredStages = newStages.filter {
+      case (_, bits) =>
+        bits.forall {
+          case b =>
+            val expectedIndex = expectedBits(b.value).index
+            val expectedRightShifts = expectedBits(b.value).rightShifts
+            if (b.index >= expectedIndex)
+              true
+            else {
+              //This line is key. It allows to filter bits that would never reach the expected bit.
+              // We take the currentIndex and we add up the maximum number of jumps to the right.
+              //In our case the maximum shifts it is the minimum value between the remaining rounds and the jumps that the bit is allowed to do (expectedRightShifts - b.rightShifts)
+              val maximumRightIndex = b.index + Math.min(expectedRightShifts - b.rightShifts, rounds)
+              maximumRightIndex >= expectedIndex
+            }
         }
-      }
-
-
-      //Then we need to add the DefinitionStage (List[Char], List[Bit]) to the exsisting permutations to obtain the new list of permutations
-      filteredStages.map { case (s, b) => DefinitionSnapshot(steps :+ s, b.sortBy(_.index)) }
     }
+
+    //Then we need to add the DefinitionStage (List[Char], List[Bit]) to the exsisting permutations to obtain the new list of permutations
+    filteredStages.map { case (s, b) => DefinitionSnapshot(steps :+ s, b.sortBy(_.index)) }
+  }
 
 }

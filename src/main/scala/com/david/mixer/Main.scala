@@ -22,7 +22,7 @@ object Main extends App {
 
   val permutations = readPermutations(false)
   val rightShifts = readRightShifts(false)
-  val mixer= new Mixer(permutations, rightShifts)
+  val mixer = new Mixer(permutations, rightShifts)
   println(mixer.findDefinitions())
 
 }
