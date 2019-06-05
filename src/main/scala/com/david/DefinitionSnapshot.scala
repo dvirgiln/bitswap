@@ -44,13 +44,13 @@ class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
         //Returning the first combination of Bits, Operations
         (filteredList, index + 1)
       case _ => // At least one bit has been calculated
-        //It is required to iterate over the accumulated value and get the previous value of every stage
-        val combined = accumulatedValue.flatMap{ case(stage, bits) =>
-          //Applying the operations including the last character from the stage
-          val funcApplied = operations.toList.map{ case (operation, func) => (operation,func(bit, Some(stage.last), index, size))}
+        //It is required to iterate over the accumulated value and get the previous value of every step
+        val combined = accumulatedValue.flatMap{ case(step, bits) =>
+          //Applying the operations including the last character from the step
+          val funcApplied = operations.toList.map{ case (operation, func) => (operation,func(bit, Some(step.last), index, size))}
           val filteredList = funcApplied.filter(_._2.isDefined).map{case (o, b) => (o, b.get)}
-          //Creating a list of the existing stage adding the new character and the same for the bits
-          filteredList.map{case (character, bit) => (stage :+ character, bits :+ bit)}
+          //Creating a list of the existing step adding the new character and the same for the bits
+          filteredList.map{case (character, bit) => (step :+ character, bits :+ bit)}
         }
         (combined, index + 1)
     }
