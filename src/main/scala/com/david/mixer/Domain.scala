@@ -1,4 +1,4 @@
-package com.david
+package com.david.mixer
 
 object Domain {
   type DefinitionStep = List[Char]

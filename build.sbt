@@ -31,4 +31,4 @@ val root = (project in file(".")).
       "-language:_"
     )
   )
-//mainClass in Compile := Some("com.david.crawler.Main")
+mainClass in Compile := Some("com.david.mixer.Main")
