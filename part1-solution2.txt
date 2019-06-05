@@ -1,0 +1,11 @@
+Out of Memory Error.
+
+To execute:
+Permutations(comma separated list of integers like 2,0,1):
+0,1,7,2,5,3,11,13,4,6,8,14,9,12,10
+Right Shifts(comma separated list of integers like 2,0,1):
+10,15,14,13,15,12,15,11,13,13,13,11,10,8,9
+
+It is required at least 5 rounds(M) to move the 10 to the 15 position.
+
+As we are calculating all the possible combinations without including any filtering (the right shifts on part 2) then the output grows exponentially.

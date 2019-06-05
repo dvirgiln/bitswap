@@ -19,16 +19,8 @@ object Main extends App {
     println("Right Shifts(comma separated list of integers like 2,0,1): ")
     Try(StdIn.readLine.split(",").map(_.toInt).toList).getOrElse(readRightShifts(true))
   }
-  def readRounds(error: Boolean): Int = {
-    if (error) {
-      println("\tValue introduced not correct. Please introduce a correct value for the rounds(Integer).")
-    }
-    println("Rounds: ")
-    Try(StdIn.readLine.toInt).getOrElse(readRounds(true))
-  }
 
   val permutations = readPermutations(false)
   val rightShifts = readRightShifts(false)
-  val rounds = readRounds(false)
-  println(Mixer.combinations(permutations, rounds))
+  println(Mixer.combinations(permutations))
 }
