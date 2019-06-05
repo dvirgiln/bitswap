@@ -15,7 +15,8 @@ class Mixer(val permutations: List[Int], val rightShifts: List[Int]) {
   @tailrec
   private def findDefinitions(current: List[DefinitionSnapshot], round: Int, rounds: Int): Option[DefinitionSnapshot]={
     if(rounds == round){
-      current.filter(_.snapshot.toSet == expectedBits).headOption
+      //current.filter(_.snapshot.toSet == expectedBits).headOption
+      current.filter{_.snapshot.forall(b => expectedBitsMap(b.value).index == b.index)}.headOption
     }
     else{
       val snapshots= current.flatMap(a => a.concatenateStep(rightShiftsWithIndex,expectedBitsMap, rounds-round-1))
@@ -29,21 +30,13 @@ class Mixer(val permutations: List[Int], val rightShifts: List[Int]) {
     val initialBits = initial.map { case a => Bit(a, a) }
     //In every iteration of the fold we will add more permutations. In the list of perputations there is associated a snapshot of the Bits
     val initialValue = List(DefinitionSnapshot(List.empty[List[Char]], initialBits.toList))
-    //In every round we iterate over the existing accumulated definition steps and add the new steps
-    /*val comb = (0 to rounds - 1).foldLeft(initialValue) {
-      case (definitions, round) =>
-        definitions.flatMap(a => a.concatenateStep(rightShiftsWithIndex,expectedBitsMap, rounds-round-1))
-    }*/
-    //return the ones that the final snapshot is equals to the expected definition snapshot. It is being returned all the definition steps
-    //val output = comb.filter(_.snapshot.toSet == expectedBits).map(_.steps)
-    //val output2 = comb.filter{_.snapshot.forall(b => expectedBitsMap(b.value).index == b.index)}.map(_.steps)
-    //println(output2)
 
     val output = findDefinitions(initialValue,0, rounds)
     //If no solution has been found with the number of rounds (M) then retry to find a solution with another level
     output match {
-      case None if (rounds < maxRounds) => findDefinitions(maxRounds, rounds + 1)
+      case None if (rounds <= maxRounds) => findDefinitions(maxRounds, rounds + 1)
       case Some(a) => Some(output.get.steps)
+      case _ => None
     }
   }
 
