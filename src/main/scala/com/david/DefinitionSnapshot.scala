@@ -26,6 +26,10 @@ class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
   //List of all the operations and the character associated to the operation
   private val operations = Map('|' -> remainOp, '\\' -> shiftRightOp,'/' -> shiftLeftOp)
 
+  /*
+   * This function is the one that calculate all the possible permutations/operations than can be applied from the current
+   * definition snapshot. It has to go bit by bit checking the possible operations to apply
+   */
   def calculateSnapshotPermutation={
     val size = snapshot.size
     //This fold it is going to calculate all the definitions stage possible from the existing snapshot
@@ -35,7 +39,7 @@ class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
         val filteredList: List[(List[Char], List[Bit])] = funcApplied.filter(_._2.isDefined).map{case (o, b) => (o, List(b.get))}
         //Returning the first combination of Bits, Operations
         (filteredList, index + 1)
-      case _ =>
+      case _ => // At least one bit has been calculated
         //It is required to iterate over the accumulated value and get the previous value of every stage
         val combined = accumulatedValue.flatMap{ case(stage, bits) =>
           //Applying the operations including the last character from the stage
@@ -49,6 +53,10 @@ class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
     }._1
   }
 
+  /*
+   * This function calculates all the possible steps that can be added from the existing Definition Step.
+   * Then it append them to the existing definition snapshot and generate a new Definition Snapshot, with the new bits
+   */
   def concatenateStep(): List[DefinitionSnapshot] =
   {
     val newStages = calculateSnapshotPermutation
