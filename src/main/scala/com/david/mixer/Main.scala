@@ -22,5 +22,5 @@ object Main extends App {
 
   val permutations = readPermutations(false)
   val rightShifts = readRightShifts(false)
-  println(Mixer.combinations(permutations))
+  println(Mixer.findDefinitions(permutations, rightShifts))
 }
