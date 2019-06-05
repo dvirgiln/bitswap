@@ -2,12 +2,11 @@ package com.david
 
 import com.david.Domain.{Bit, Definition, DefinitionStep}
 
-class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
-
+object StepOperations{
   /*
-    Operations to shift the bits. It depends on the previous value and in the index position.
-    All of them they return an Option. In case the operation cannot be applied None would be returned.
-   */
+  Operations to shift the bits. It depends on the previous value and in the index position.
+  All of them they return an Option. In case the operation cannot be applied None would be returned.
+ */
   private val remainOp = (b: Bit, previous: Option[Char], index: Int, size: Int) => previous match {
     case Some(p) if(p=='\\') => None
     case _ => Some(b)
@@ -24,8 +23,13 @@ class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
   }
 
   //List of all the operations and the character associated to the operation
-  private val operations = Map('|' -> remainOp, '\\' -> shiftRightOp,'/' -> shiftLeftOp)
+  val operations = Map('|' -> remainOp, '\\' -> shiftRightOp,'/' -> shiftLeftOp)
+}
 
+
+class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]){
+
+  import StepOperations._
   /*
    * This function is the one that calculate all the possible permutations/operations than can be applied from the current
    * definition snapshot. It has to go bit by bit checking the possible operations to apply
