@@ -15,8 +15,7 @@ class Mixer(val permutations: List[Int], val rightShifts: List[Int]) {
   @tailrec
   private def findDefinitions(current: List[DefinitionSnapshot], round: Int, rounds: Int): Option[DefinitionSnapshot]={
     if(rounds == round){
-      //current.filter(_.snapshot.toSet == expectedBits).headOption
-      current.filter{_.snapshot.forall(b => expectedBitsMap(b.value).index == b.index)}.headOption
+      current.filter(_.snapshot.toSet == expectedBits).headOption
     }
     else{
       val snapshots= current.flatMap(a => a.concatenateStep(rightShiftsWithIndex,expectedBitsMap, rounds-round-1))
