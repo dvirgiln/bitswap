@@ -1,6 +1,6 @@
 package com.david.mixer
 
-import com.david.mixer.Domain.{ Bit, Definition, DefinitionStep }
+import com.david.mixer.Domain.{ Bit, Definition }
 
 object StepOperations {
   /*
@@ -13,7 +13,7 @@ object StepOperations {
   }
   private val shiftRightOp = (b: Bit, previous: Option[Char], index: Int, size: Int, rightShifts: Map[Int, Int]) => (previous, b, index) match {
     case (Some(p), _, _) if (p == '\\') => None
-    case (_, bit, i) if (bit.rightShifts < rightShifts(bit.value) && i < size - 1) =>
+    case (_, bit, i) if (i < size - 1) =>
       Some(Bit(b.index + 1, b.value, b.rightShifts + 1))
     case _ => None
   }
@@ -31,33 +31,55 @@ case class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]) {
 
   import StepOperations._
 
+  val correctBit = (bit: Bit, expectedBits: Map[Int, Bit], rounds: Int) => {
+    val expectedIndex = expectedBits(bit.value).index
+    val expectedRightShifts = expectedBits(bit.value).rightShifts
+    if (bit.index >= expectedIndex)
+      true
+    else {
+      //This line is key. It allows to filter bits that would never reach the expected bit.
+      // We take the currentIndex and we add up the maximum number of jumps to the right.
+      //In our case the maximum shifts it is the minimum value between the remaining rounds and the jumps that the bit is allowed to do (expectedRightShifts - b.rightShifts)
+      val maximumRightIndex = bit.index + Math.min(expectedRightShifts - bit.rightShifts, rounds)
+      maximumRightIndex >= expectedIndex
+    }
+  }
+
   /*
    * This function is the one that calculate all the possible permutations/operations than can be applied from the current
    * definition snapshot. It has to go bit by bit checking the possible operations to apply
    */
-  def calculateSnapshotPermutation(rightShifts: Map[Int, Int]): List[(DefinitionStep, List[Bit])] = {
+  def calculateSnapshotPermutation(rightShifts: Map[Int, Int], expectedBits: Map[Int, Bit], rounds: Int): List[(String, List[Bit])] = {
     val size = snapshot.size
     //This fold it is going to calculate all the definitions stage possible from the existing snapshot
-    snapshot.foldLeft((List.empty[(DefinitionStep, List[Bit])], 0)) {
+    snapshot.foldLeft((List.empty[(String, List[Bit])], 0)) {
       case ((accumulatedValue, index), bit) => accumulatedValue match {
         case Nil => //There is not a previous accumulated value
-          val funcApplied = operations.toList.map { case (operation, func) => (List(operation), func(bit, None, index, size, rightShifts)) }
-          val filteredList: List[(List[Char], List[Bit])] = funcApplied.filter(_._2.isDefined).map { case (o, b) => (o, List(b.get)) }
+          val funcApplied = operations.toList.map {
+            case (operation, func) => func(bit, None, index, size, rightShifts) match {
+              case None => None
+              case Some(a) if (correctBit(a, expectedBits, rounds)) => Some((operation + "", List(a)))
+              case _ => None
+            }
+          }.flatten
           //Returning the first combination of Bits, Operations
-          (filteredList, index + 1)
+          (funcApplied, index + 1)
         case _ => // At least one bit has been calculated
           //It is required to iterate over the accumulated value and get the previous value of every step
           val combined = accumulatedValue.flatMap {
             case (step, bits) =>
               //Applying the operations including the last character from the step
-              val funcApplied = operations.toList.map { case (operation, func) => (operation, func(bit, Some(step.last), index, size, rightShifts)) }
-              val filteredList = funcApplied.filter(_._2.isDefined).map { case (o, b) => (o, b.get) }
-              //Creating a list of the existing step adding the new character and the same for the bits
-              filteredList.map { case (character, bit) => (step :+ character, bits :+ bit) }
+              operations.toList.map {
+                case (operation, func) => func(bit, Some(step.last), index, size, rightShifts) match {
+                  case None => None
+                  case Some(a) if (correctBit(a, expectedBits, rounds)) => Some(step + operation, bits :+ a)
+                  case _ => None
+                }
+              }.flatten
           }
           (combined, index + 1)
       }
-    }._1
+    }._1.filter(a => a._1.length == size)
   }
 
   /*
@@ -65,27 +87,9 @@ case class DefinitionSnapshot(val steps: Definition, val snapshot: List[Bit]) {
    * Then it append them to the existing definition snapshot and generate a new Definition Snapshot, with the new bits
    */
   def concatenateStep(rightShifts: Map[Int, Int], expectedBits: Map[Int, Bit], rounds: Int): List[DefinitionSnapshot] = {
-    val newStages = calculateSnapshotPermutation(rightShifts)
-    val filteredStages = newStages.filter {
-      case (_, bits) =>
-        bits.forall {
-          case b =>
-            val expectedIndex = expectedBits(b.value).index
-            val expectedRightShifts = expectedBits(b.value).rightShifts
-            if (b.index >= expectedIndex)
-              true
-            else {
-              //This line is key. It allows to filter bits that would never reach the expected bit.
-              // We take the currentIndex and we add up the maximum number of jumps to the right.
-              //In our case the maximum shifts it is the minimum value between the remaining rounds and the jumps that the bit is allowed to do (expectedRightShifts - b.rightShifts)
-              val maximumRightIndex = b.index + Math.min(expectedRightShifts - b.rightShifts, rounds)
-              maximumRightIndex >= expectedIndex
-            }
-        }
-    }
-
+    val newStages = calculateSnapshotPermutation(rightShifts, expectedBits, rounds)
     //Then we need to add the DefinitionStage (List[Char], List[Bit]) to the exsisting permutations to obtain the new list of permutations
-    filteredStages.map { case (s, b) => DefinitionSnapshot(steps :+ s, b.sortBy(_.index)) }
+    newStages.map { case (s, b) => DefinitionSnapshot(steps :+ s, b.sortBy(_.index)) }
   }
 
 }

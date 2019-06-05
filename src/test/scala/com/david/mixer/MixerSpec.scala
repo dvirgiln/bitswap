@@ -6,7 +6,7 @@ class MixerSpec extends WordSpec with Matchers {
 
   "Mixer" should {
     "return all the different combinations that in 4 steps achieve the final expected result" in {
-      val expected = List(List('|', '|', '|'), List('|', '|', '|'), List('\\', '/', '|'), List('|', '\\', '/'))
+      val expected = List("|||", "|||", "\\/|", "|\\/")
       val rightShifts = List(2, 0, 0)
       val mixer = new Mixer(List(2, 0, 1), rightShifts)
       val result = mixer.findDefinitions(4, 4)

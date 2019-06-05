@@ -15,9 +15,12 @@ class Mixer(val permutations: List[Int], val rightShifts: List[Int]) {
   @tailrec
   private def findDefinitions(current: List[DefinitionSnapshot], round: Int, rounds: Int): Option[DefinitionSnapshot] = {
     if (rounds == round) {
+      //This filter checks if the snapshot contains exactly the same Bits (index, value and right shifts.
       current.filter(_.snapshot.toSet == expectedBits).headOption
+      //Comment previous and uncomment in case you want to execute the Part 1.
+      //current.filter { _.snapshot.forall(b => expectedBitsMap(b.value).index == b.index) }.headOption
     } else {
-      val snapshots = current.flatMap(a => a.concatenateStep(rightShiftsWithIndex, expectedBitsMap, rounds - round - 1))
+      val snapshots = current.flatMap(a => a.concatenateStep(rightShiftsWithIndex, expectedBitsMap, rounds - round))
       findDefinitions(snapshots, round + 1, rounds)
     }
   }
@@ -27,7 +30,7 @@ class Mixer(val permutations: List[Int], val rightShifts: List[Int]) {
     // List[(Index, Bit) For 4Bits input would be List((0,0),(1,1),(2,2),(3,3)
     val initialBits = initial.map { case a => Bit(a, a) }
     //In every iteration of the fold we will add more permutations. In the list of perputations there is associated a snapshot of the Bits
-    val initialValue = List(DefinitionSnapshot(List.empty[List[Char]], initialBits.toList))
+    val initialValue = List(DefinitionSnapshot(List.empty[String], initialBits.toList))
 
     val output = findDefinitions(initialValue, 0, rounds)
     //If no solution has been found with the number of rounds (M) then retry to find a solution with another level
