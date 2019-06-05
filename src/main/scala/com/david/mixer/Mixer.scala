@@ -2,7 +2,7 @@ package com.david.mixer
 
 object Mixer {
   import Domain._
-  def combinations(permutations: List[Int],maxRounds:Int=10, rounds: Int=2): List[Definition] = {
+  def combinations(permutations: List[Int], maxRounds: Int = 10, rounds: Int = 2): List[Definition] = {
     val initial = 0 to permutations.size - 1
     // List[(Index, Bit) For 4Bits input would be List((0,0),(1,1),(2,2),(3,3)
     val initialBits = initial.map { case a => Bit(a, a) }
